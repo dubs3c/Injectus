@@ -32,7 +32,7 @@ optional arguments:
 ```
 
 ## Motivation
-Needed a simple CRLF/open redirect scanner that I could include into my bug bounty pipeline at [https://github.com/BountyStrike/Bountystrike-sh](https://github.com/BountyStrike/Bountystrike-sh). Didn't find any tools that satisifed my need, so I created Injectus. It's a little bit of an experiment, to see if it works better than other tools.
+Needed a simple CRLF/open redirect scanner that I could include into my bug bounty pipeline at [https://github.com/BountyStrike/Bountystrike-sh](https://github.com/BountyStrike/Bountystrike-sh). Didn't find any tools that satisfied my need, so I created Injectus. It's a little bit of an experiment, to see if it works better than other tools.
 
 ## Design
 
