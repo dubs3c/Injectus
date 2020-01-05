@@ -74,7 +74,7 @@ async def worker(name: str, queue, session):
             print("[ERROR] Something went wrong...")
             print(e)
             queue.task_done()
-            continue
+            break
   
         queue.task_done()
 
@@ -124,7 +124,11 @@ async def start(args):
         # Create workers
         size = async_queue.qsize()
         tasks = []
-        session = aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=args.timeout))
+        connector = aiohttp.TCPConnector(
+            verify_ssl=False,
+            limit=50,
+        )
+        session = aiohttp.ClientSession(connector=connector,timeout=aiohttp.ClientTimeout(total=args.timeout))
         for i in range(workers):
             task = asyncio.create_task(worker(f'worker-{i}', async_queue, session))
             tasks.append(task)
@@ -150,7 +154,7 @@ def main():
     parser.add_argument("-f", "--file", action="store", dest="file", help="File containing URLs")
     parser.add_argument("-u", "--url", action="store", dest="url", help="Single URL to test")
     parser.add_argument("-r", "--no-request", action="store_true", dest="no_request", help="Only build attack list, do not perform any requests")
-    parser.add_argument("-w", "--workers", type=int, default=20, dest="workers", action="store", help="Amount of asyncio workers, default is 20")
+    parser.add_argument("-w", "--workers", type=int, default=10, dest="workers", action="store", help="Amount of asyncio workers, default is 10")
     parser.add_argument("-t", "--timeout", type=int, default=6, dest="timeout", action="store", help="HTTP request timeout, default is 6 seconds")
     parser.add_argument("-c", "--crlf", action="store_true", dest="crlf", help="Only perform crlf attacks")
     parser.add_argument("-op", "--openredirect", action="store_true", dest="openredirect", help="Only perform open redirect attacks")
