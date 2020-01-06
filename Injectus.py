@@ -27,7 +27,7 @@ banner = '''
     ▐█·▐█▐▐▌▪▄ ██▐▀▀▪▄██ ▄▄ ▐█.▪█▌▐█▌▄▀▀▀█▄
     ▐█▌██▐█▌▐▌▐█▌▐█▄▄▌▐███▌ ▐█▌·▐█▄█▌▐█▄▪▐█
     ▀▀▀▀▀ █▪ ▀▀▀• ▀▀▀ ·▀▀▀  ▀▀▀  ▀▀▀  ▀▀▀▀ 
-              ~ BOUNTYSTRIKE ~
+               ~ BOUNTYSTRIKE ~
 '''
 
 class bcolors:
@@ -41,7 +41,7 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 
-async def worker(name: str, queue, session):
+async def worker(name: str, queue, session, delay):
     while True:
         try:
             url_dict = await queue.get()
@@ -66,6 +66,7 @@ async def worker(name: str, queue, session):
                         print(f"{bcolors.OKGREEN}[{name}] Open redirect detected: {u.get('url')}{bcolors.ENDC}")
                     else:
                         print(f'[{name}] injecting open redirect payloads {u.get("url")} {bcolors.FAIL}[FAILED]{bcolors.ENDC}')
+                await asyncio.sleep(delay)
         except asyncio.TimeoutError:
             print(f"{bcolors.WARNING}[ERROR][{name}] timed out when attacking {u.get('url')}...{bcolors.ENDC}")
             queue.task_done()
@@ -85,6 +86,7 @@ async def start(args):
     workers = args.workers
     url = args.url
     async_queue = asyncio.Queue()
+    delay = args.delay
 
     if url:
         if args.crlf:
@@ -125,12 +127,12 @@ async def start(args):
         size = async_queue.qsize()
         tasks = []
         connector = aiohttp.TCPConnector(
-            verify_ssl=False,
+            ssl=False,
             limit=50,
         )
         session = aiohttp.ClientSession(connector=connector,timeout=aiohttp.ClientTimeout(total=args.timeout))
         for i in range(workers):
-            task = asyncio.create_task(worker(f'worker-{i}', async_queue, session))
+            task = asyncio.create_task(worker(f'worker-{i}', async_queue, session, delay))
             tasks.append(task)
 
         # Wait until the queue is fully processed.
@@ -156,6 +158,7 @@ def main():
     parser.add_argument("-r", "--no-request", action="store_true", dest="no_request", help="Only build attack list, do not perform any requests")
     parser.add_argument("-w", "--workers", type=int, default=10, dest="workers", action="store", help="Amount of asyncio workers, default is 10")
     parser.add_argument("-t", "--timeout", type=int, default=6, dest="timeout", action="store", help="HTTP request timeout, default is 6 seconds")
+    parser.add_argument("-d", "--delay", type=int, default=1, dest="delay", action="store", help="The delay between requests, default is 1 second")
     parser.add_argument("-c", "--crlf", action="store_true", dest="crlf", help="Only perform crlf attacks")
     parser.add_argument("-op", "--openredirect", action="store_true", dest="openredirect", help="Only perform open redirect attacks")
     args = parser.parse_args()

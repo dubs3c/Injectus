@@ -5,15 +5,15 @@ Simple python tool that goes through a list of URLs trying CRLF and open redirec
 
 ```
 
-    ▪   ▐ ▄  ▐▄▄▄▄▄▄ . ▄▄· ▄▄▄▄▄▄• ▄▌.▄▄ · 
-    ██ •█▌▐█  ·██▀▄.▀·▐█ ▌▪•██  █▪██▌▐█ ▀. 
+    ▪   ▐ ▄  ▐▄▄▄▄▄▄ . ▄▄· ▄▄▄▄▄▄• ▄▌.▄▄ ·
+    ██ •█▌▐█  ·██▀▄.▀·▐█ ▌▪•██  █▪██▌▐█ ▀.
     ▐█·▐█▐▐▌▪▄ ██▐▀▀▪▄██ ▄▄ ▐█.▪█▌▐█▌▄▀▀▀█▄
     ▐█▌██▐█▌▐▌▐█▌▐█▄▄▌▐███▌ ▐█▌·▐█▄█▌▐█▄▪▐█
-    ▀▀▀▀▀ █▪ ▀▀▀• ▀▀▀ ·▀▀▀  ▀▀▀  ▀▀▀  ▀▀▀▀ 
-              ~ BOUNTYSTRIKE ~
+    ▀▀▀▀▀ █▪ ▀▀▀• ▀▀▀ ·▀▀▀  ▀▀▀  ▀▀▀  ▀▀▀▀
+               ~ BOUNTYSTRIKE ~
 
-usage: Injectus [-h] [-f FILE] [-u URL] [-r] [-w WORKERS] [-t TIMEOUT] [-c]
-                [-op]
+usage: Injectus [-h] [-f FILE] [-u URL] [-r] [-w WORKERS] [-t TIMEOUT]
+                [-d DELAY] [-c] [-op]
 
 Brute force CRLF and open redirect payloads for a given target. Crafted by
 @dubs3c.
@@ -24,9 +24,11 @@ optional arguments:
   -u URL, --url URL     Single URL to test
   -r, --no-request      Only build attack list, do not perform any requests
   -w WORKERS, --workers WORKERS
-                        Amount of asyncio workers, default is 20
+                        Amount of asyncio workers, default is 10
   -t TIMEOUT, --timeout TIMEOUT
                         HTTP request timeout, default is 6 seconds
+  -d DELAY, --delay DELAY
+                        The delay between requests, default is 1 second
   -c, --crlf            Only perform crlf attacks
   -op, --openredirect   Only perform open redirect attacks
 ```
