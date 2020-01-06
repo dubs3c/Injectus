@@ -15,8 +15,7 @@ Simple python tool that goes through a list of URLs trying CRLF and open redirec
 usage: Injectus [-h] [-f FILE] [-u URL] [-r] [-w WORKERS] [-t TIMEOUT]
                 [-d DELAY] [-c] [-op]
 
-Brute force CRLF and open redirect payloads for a given target. Crafted by
-@dubs3c.
+CRLF and open redirect fuzzer. Crafted by @dubs3c.
 
 optional arguments:
   -h, --help            show this help message and exit

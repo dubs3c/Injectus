@@ -5,6 +5,7 @@ import asyncio
 import logging
 import re
 import sys
+import signal
 import time
 
 from multiprocessing import Pool, Process, JoinableQueue
@@ -20,15 +21,6 @@ except ImportError:
     print("aiodns is required, run pip3 install aiodns --user")
     quit()
 
-banner = '''
-
-    ▪   ▐ ▄  ▐▄▄▄▄▄▄ . ▄▄· ▄▄▄▄▄▄• ▄▌.▄▄ · 
-    ██ •█▌▐█  ·██▀▄.▀·▐█ ▌▪•██  █▪██▌▐█ ▀. 
-    ▐█·▐█▐▐▌▪▄ ██▐▀▀▪▄██ ▄▄ ▐█.▪█▌▐█▌▄▀▀▀█▄
-    ▐█▌██▐█▌▐▌▐█▌▐█▄▄▌▐███▌ ▐█▌·▐█▄█▌▐█▄▪▐█
-    ▀▀▀▀▀ █▪ ▀▀▀• ▀▀▀ ·▀▀▀  ▀▀▀  ▀▀▀  ▀▀▀▀ 
-               ~ BOUNTYSTRIKE ~
-'''
 
 class bcolors:
     HEADER = '\033[95m'
@@ -40,6 +32,27 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+banner = f'''
+{bcolors.OKGREEN}
+    ▪   ▐ ▄  ▐▄▄▄▄▄▄ . ▄▄· ▄▄▄▄▄▄• ▄▌.▄▄ · 
+    ██ •█▌▐█  ·██▀▄.▀·▐█ ▌▪•██  █▪██▌▐█ ▀. 
+    ▐█·▐█▐▐▌▪▄ ██▐▀▀▪▄██ ▄▄ ▐█.▪█▌▐█▌▄▀▀▀█▄
+    ▐█▌██▐█▌▐▌▐█▌▐█▄▄▌▐███▌ ▐█▌·▐█▄█▌▐█▄▪▐█
+    ▀▀▀▀▀ █▪ ▀▀▀• ▀▀▀ ·▀▀▀  ▀▀▀  ▀▀▀  ▀▀▀▀ {bcolors.ENDC}
+               {bcolors.UNDERLINE}{bcolors.FAIL}~ BOUNTYSTRIKE ~{bcolors.ENDC}
+'''
+
+
+class SigHandler:
+    def __init__(self, async_queue):
+        self.queue = async_queue
+    def __call__(self, signo, frame):
+        print("\n[-] CTRL-C Detected, attempting graceful shutdown...")
+        print("[-] Notifying workers to shutdown...")
+
+        self.queue._queue.clear()
+        self.queue._finished.set()
+        self.queue._unfinished_tasks = 0
 
 async def worker(name: str, queue, session, delay):
     while True:
@@ -72,8 +85,7 @@ async def worker(name: str, queue, session, delay):
             queue.task_done()
             continue
         except Exception as e:
-            print("[ERROR] Something went wrong...")
-            print(e)
+            print(f"[ERROR] Something went wrong: {e}")
             queue.task_done()
             break
   
@@ -87,6 +99,8 @@ async def start(args):
     url = args.url
     async_queue = asyncio.Queue()
     delay = args.delay
+
+    signal.signal(signal.SIGINT, SigHandler(async_queue))
 
     if url:
         if args.crlf:
@@ -124,8 +138,8 @@ async def start(args):
 
     if not args.no_request:
         # Create workers
-        size = async_queue.qsize()
         tasks = []
+        size = async_queue.qsize()
         connector = aiohttp.TCPConnector(
             ssl=False,
             limit=50,
@@ -147,12 +161,12 @@ async def start(args):
         time_ended = time.time() - started_at
 
         print('=====================================')
-        print(f"Processing time: {time_ended} seconds")
-        print(f"Total URLs proccessed {size}")
+        print(f"[+] Processing time: {time_ended} seconds")
+        print(f"[+] Total URLs {size}")
 
 
 def main():
-    parser = argparse.ArgumentParser(prog="Injectus", description="Brute force CRLF and open redirect payloads for a given target. Crafted by @dubs3c.")
+    parser = argparse.ArgumentParser(prog="Injectus", description="CRLF and open redirect fuzzer. Crafted by @dubs3c.")
     parser.add_argument("-f", "--file", action="store", dest="file", help="File containing URLs")
     parser.add_argument("-u", "--url", action="store", dest="url", help="Single URL to test")
     parser.add_argument("-r", "--no-request", action="store_true", dest="no_request", help="Only build attack list, do not perform any requests")
