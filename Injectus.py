@@ -19,6 +19,7 @@ try:
 except ImportError:
     print("aiohttp is required, run pip3 install aiohttp --user")
     print("aiodns is required, run pip3 install aiodns --user")
+    print("aiofiles is required, run pip3 install aiofiles --user")
     quit()
 
 
@@ -114,18 +115,17 @@ async def start(args):
                 if args.no_request:
                     print(payload)
                 else:
-                    async_queue.put_nowait(payload)
+                    await async_queue.put(payload)
 
         if args.openredirect:
             for payload in build_openredirect_list(url):
                 if args.no_request:
                     print(payload)
                 else:
-                    async_queue.put_nowait(payload)
+                    await async_queue.put(payload)
     else:
-        with open(f"{filename}", "r") as f:
-
-            for domain in f.readlines():
+        async with aiofiles.open(f"{filename}", "r") as f:
+            async for domain in f:
                 domain = domain.replace("\n", "")
 
                 if args.crlf:
@@ -133,14 +133,14 @@ async def start(args):
                         if args.no_request:
                             print(f"[{inject['type']}] {inject['url']}")
                         else:
-                            async_queue.put_nowait(inject)
+                           await async_queue.put(inject)
 
                 if args.openredirect:
                     for inject in build_openredirect_list(domain):
                         if args.no_request:
                             print(f"[{inject['type']}] {inject['url']}")
                         else:
-                            async_queue.put_nowait(inject)
+                           await async_queue.put(inject)
 
     if not args.no_request:
         # Create workers
