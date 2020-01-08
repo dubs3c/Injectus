@@ -37,6 +37,10 @@ openredirect_params = [
     "checkout_url",
     "continue",
     "return_path",
+    "to",
+    "RedirectTo",
+    "next",
+    "nextURL",
 ]
 
 openredirect_payloads = [
@@ -46,7 +50,6 @@ openredirect_payloads = [
     "//bountystrike.io",
     "///bountystrike.io",
     "////bountystrike.io",
-    "/\\bountystrike.io",
     "%2fbountystrike.io",
     "%2f$2fbountystrike.io",
     "%2fbountystrike.io%2f%2f",
@@ -82,7 +85,7 @@ def build_openredirect_list(url: str):
             pattern = re.compile(x["key"] + r"=[\w\-\.\_]+&*")
             sub, count = re.subn(pattern, f"{x['key']}={x['value']}", url)
             if count > 0:
-                yield {"url": sub, "type": "openredirect"}
+                yield {"url": sub, "type": "openredirect", "payload": x['value']}
     
 
     elif u2.path:
@@ -93,14 +96,14 @@ def build_openredirect_list(url: str):
             for p in openredirect_payloads:
                 sub, count = re.subn(pattern, f"{op_param}/{p}", path)
                 if count > 0:
-                    yield {"url": sub, "type": "openredirect"}
+                    yield {"url": sub, "type": "openredirect", "payload": p}
 
 
     else:
         # Append payload to end of URL
         for payload in openredirect_payloads:
             attack = f"{url}/{payload}"
-            yield {"url": attack, "type": "openredirect"}
+            yield {"url": attack, "type": "openredirect", "payload": payload}
 
 
 def build_crlf_list(url: str):

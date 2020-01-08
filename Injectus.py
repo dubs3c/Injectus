@@ -9,7 +9,7 @@ import signal
 import time
 
 from multiprocessing import Pool, Process, JoinableQueue
-from urllib.parse import urlsplit, urlunsplit
+from urllib.parse import urlsplit, urlunsplit, unquote
 from pathlib import Path
 
 from utils import build_crlf_list, build_openredirect_list
@@ -68,7 +68,8 @@ async def worker(name: str, queue, session, delay):
         u = url_dict
 
         try:
-            async with session.get(u.get("url")) as resp:
+            async with session.get(u.get("url"), allow_redirects=False) as resp:
+
                 if u.get("type") == "crlf":
                     if "bounty" in resp.headers.keys():
                         print(f"{bcolors.OKGREEN}[{name}] CRLF Injection detected: {u.get('url')}{bcolors.ENDC}")
@@ -76,11 +77,15 @@ async def worker(name: str, queue, session, delay):
                         print(f'[{name}] injecting crlf payloads {u.get("url")} {bcolors.FAIL}[FAILED]{bcolors.ENDC}')
 
                 if u.get("type") == "openredirect":
-                    if "Location" in resp.headers.keys() and "bountystrike.io" in resp.headers["Location"]:
+                    # This comparison is un ugly hack because aiohttp only support scheme to be
+                    # either https|http|''. Need to set redirect=False because of this.
+                    if "Location" in resp.headers.keys() and resp.headers["Location"].startswith(unquote(u["payload"])):
                         print(f"{bcolors.OKGREEN}[{name}] Open redirect detected: {u.get('url')}{bcolors.ENDC}")
                     else:
                         print(f'[{name}] injecting open redirect payloads {u.get("url")} {bcolors.FAIL}[FAILED]{bcolors.ENDC}')
+
                 await asyncio.sleep(delay)
+
         except asyncio.TimeoutError:
             print(f"{bcolors.WARNING}[ERROR][{name}] timed out when attacking {u.get('url')}...{bcolors.ENDC}")
             queue.task_done()
