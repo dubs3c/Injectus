@@ -14,14 +14,8 @@ from pathlib import Path
 
 from utils import build_crlf_list, build_openredirect_list
 
-try:
-    import aiohttp
-except ImportError:
-    print("aiohttp is required, run pip3 install aiohttp --user")
-    print("aiodns is required, run pip3 install aiodns --user")
-    print("aiofiles is required, run pip3 install aiofiles --user")
-    quit()
-
+import aiohttp
+import aiofiles
 
 class bcolors:
     HEADER       = "\033[95m"
